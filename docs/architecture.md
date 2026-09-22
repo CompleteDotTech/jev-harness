@@ -39,7 +39,7 @@ Record    Receipt { schemaVersion: 1, …, execution: { applied: false, status: 
 
 The payload `state` carries the task, evidence lines, file contents, and the proposal, plus a fixed note that repository files, evidence, and rationale are untrusted data. Fixture labels (`arm`, `expected`, `mock`) never reach Jev.
 
-A `noul` answer is a single probability of "yes". `answer = p ≥ 0.5 ? yes : no`; `confidence = max(p, 1 − p)`. The `noul` contract has no `criteria` field; criteria kept beside each question document intent and are stripped before the request is sent. Whether that stripping is the intended contract is an open question for the TypeSafe team.
+A `noul` answer is a single probability of "yes". `answer = p ≥ 0.5 ? yes : no`; `confidence = max(p, 1 − p)`. The [official Noul contract](https://docs.typesafe.ai/primitives/noul) supports optional `criteria` with `true` and `false` descriptions (checked 2026-09-22). Historical stripping by the playground is local validator behavior, not an API limitation. Extraction must test the exact post-validation request and version any effective semantic change; see [wire-contract guidance](hardening/07-noul-contract.md). The pinned model supports reproducibility; the 0.8 threshold remains uncalibrated.
 
 ## Decision table
 
@@ -80,7 +80,7 @@ The same shape (closed-set question → typed answer → code policy) covers two
 | Seam | Jev primitive | Input | Output | Policy in code |
 | --- | --- | --- | --- | --- |
 | `ProposalReview` | `noul` ×4 | one proposal + task + evidence | four answers | decision table above |
-| `ToolRouter` | `choice` over N tool ids (+ `needs_clarification`) | intent text + permitted tool list | top-k tools | closed-set check, confidence floor, mocked execution |
+| `ToolRouter` | `choice` over N tool ids (+ `needs_clarification`) | intent + permitted tool list | top-k tools | closed-set check, confidence floor, mocked execution |
 | `ContextScorer` | `score` per chunk | query + context chunks | relevance per chunk | hide / summarize / show thresholds; **only after a cost model shows scoring + re-prefill beats cache reuse** |
 
 The router already has a demo in the playground (`/tool-router`) and a library in `typesafe-router`. Context scoring sends every chunk to Jev, so it needs a data-egress policy before any non-synthetic context is used.
@@ -105,6 +105,6 @@ The Rust host takes the seam and the verdict enum, not a Jev transport: that cra
 
 ## Open questions
 
-1. Is `criteria` being dropped from `noul` questions the intended contract, or should question semantics live only in the instruction sentence?
+1. Does retaining supported Noul criteria improve held-out performance relative to the historical stripped payload? Freeze and version both variants before comparison.
 2. Confidence is a distribution statistic. What guidance exists for turning it into a permit threshold before anyone tunes 0.8?
 3. Does the four-question set hold on non-synthetic tasks, and at what egress cost?
