@@ -73,14 +73,17 @@ export interface ValidationResult {
 
 export type JevSource = "jev" | "mock";
 
-export interface JevReview {
+interface JevReviewMetadata {
   model: string;
-  /** Null whenever the provider failed, timed out, or answered malformed. */
-  answers: ReviewAnswers | null;
-  error: string | null;
   latencyMs: number;
   source: JevSource;
 }
+
+/** A failed review cannot retain answers from an earlier request. */
+export type JevReview = JevReviewMetadata & (
+  | { answers: ReviewAnswers; error: null }
+  | { answers: null; error: string }
+);
 
 export type ReviewArm = "good" | "bad";
 export type ReviewMode = "base" | "plus_jev";
