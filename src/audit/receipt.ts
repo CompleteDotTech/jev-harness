@@ -1,7 +1,7 @@
 /** Optional Node audit adapter. No filesystem, network, clock, or execution. */
 import { createHash } from "node:crypto";
 import { decide, decideBase, type Decision } from "../contract/decide";
-import { dataRecord } from "../contract/input";
+import { dataArray, dataRecord, validationFailure } from "../contract/input";
 import { JEV_MODEL, REVIEW_QUESTION_IDS, REVIEW_QUESTION_SET_VERSION, type JevSource, type Receipt } from "../contract/types";
 
 export const AUDIT_POLICY_VERSION = "review-invariants-v1";
@@ -31,14 +31,21 @@ export type ReplayResult =
 export function canonicalJson(value: unknown): string {
   const active = new Set<object>();
   let nodes = 0;
+  let remaining = 2_000_000;
+  function account(text: string): string {
+    remaining -= text.length;
+    if (remaining < 0) throw Error("Audit JSON exceeds size limit.");
+    return text;
+  }
+  function string(value: string): string {
+    if (value.length > remaining) throw Error("Audit JSON exceeds size limit.");
+    return account(JSON.stringify(value));
+  }
   function encode(v: unknown, depth: number): string {
     if (++nodes > 100_000 || depth > 64) throw Error("Audit JSON exceeds structural limits.");
-    if (v === null || typeof v === "boolean") return JSON.stringify(v);
-    if (typeof v === "string") {
-      if (v.length > 2_000_000) throw Error("Audit string exceeds size limit.");
-      return JSON.stringify(v);
-    }
-    if (typeof v === "number" && Number.isFinite(v)) return JSON.stringify(v);
+    if (v === null || typeof v === "boolean") return account(JSON.stringify(v));
+    if (typeof v === "string") return string(v);
+    if (typeof v === "number" && Number.isFinite(v)) return account(JSON.stringify(v));
     if (!v || typeof v !== "object") throw Error("Audit input must be lossless JSON data.");
     if (active.has(v)) throw Error("Cyclic audit input.");
     active.add(v);
@@ -46,20 +53,27 @@ export function canonicalJson(value: unknown): string {
     if (Array.isArray(v)) {
       if (v.length > 100_000 || Reflect.ownKeys(v).length !== v.length + 1)
         throw Error("Sparse or decorated audit array.");
+      account("[]");
       const items: string[] = [];
       for (let i = 0; i < v.length; i++) {
         const descriptor = Object.getOwnPropertyDescriptor(v, String(i));
         if (!descriptor || !("value" in descriptor)) throw Error("Invalid audit array entry.");
+        if (i > 0) account(",");
         items.push(encode(descriptor.value, depth + 1));
       }
       result = `[${items.join(",")}]`;
     } else {
       const record = dataRecord(v);
       if (!record) throw Error("Audit object must contain plain data properties.");
-      result = `{${Object.keys(record).sort().map(k => `${JSON.stringify(k)}:${encode(record[k], depth + 1)}`).join(",")}}`;
+      account("{}");
+      result = `{${Object.keys(record).sort().map((k, index) => {
+        if (index > 0) account(",");
+        const key = string(k);
+        account(":");
+        return `${key}:${encode(record[k], depth + 1)}`;
+      }).join(",")}}`;
     }
     active.delete(v);
-    if (result.length > 2_000_000) throw Error("Audit JSON exceeds size limit.");
     return result;
   }
   return encode(value, 0);
@@ -72,7 +86,8 @@ function requireRecord(value: unknown, label: string): Record<string, unknown> {
   return record;
 }
 function requireStrings(value: unknown, label: string): void {
-  if (!Array.isArray(value) || !Array.from(value).every(v => typeof v === "string"))
+  const values = dataArray(value);
+  if (!values || !values.every(v => typeof v === "string"))
     throw Error(`Malformed ${label}.`);
 }
 
@@ -83,23 +98,23 @@ function auditDecision(receiptInput: unknown, bindingInput: unknown): Decision {
       typeof binding.decisionRevision !== "string" || !/^[a-f0-9]{40}([a-f0-9]{24})?$/.test(binding.decisionRevision) ||
       binding.questionSetVersion !== REVIEW_QUESTION_SET_VERSION || binding.requestedModel !== JEV_MODEL ||
       typeof binding.threshold !== "number" || !Number.isFinite(binding.threshold) || binding.threshold < 0.5 || binding.threshold > 1 ||
-      !["jev", "mock", "none"].includes(String(binding.source))) throw Error("Unsupported audit policy or provenance.");
+      (binding.source !== "jev" && binding.source !== "mock" && binding.source !== "none")) throw Error("Unsupported audit policy or provenance.");
   const workspace = requireRecord(binding.workspace, "workspace");
   const files = requireRecord(workspace.files, "workspace files");
   if (typeof workspace.task !== "string" || !Object.values(files).every(v => typeof v === "string")) throw Error("Malformed workspace snapshot.");
-  if (receipt.schemaVersion !== 1 || !["base", "plus_jev"].includes(String(receipt.mode)) ||
-      !["good", "bad"].includes(String(receipt.arm)) || typeof receipt.fixtureId !== "string" ||
+  if (receipt.schemaVersion !== 1 || (receipt.mode !== "base" && receipt.mode !== "plus_jev") ||
+      (receipt.arm !== "good" && receipt.arm !== "bad") || typeof receipt.fixtureId !== "string" ||
       typeof receipt.proposer !== "string" || typeof receipt.at !== "string" ||
       !Number.isFinite(Date.parse(receipt.at))) throw Error("Malformed receipt metadata.");
   const proposal = requireRecord(receipt.proposal, "proposal");
-  if (!["read_file", "propose_patch"].includes(String(proposal.tool)) || typeof proposal.path !== "string" ||
+  if ((proposal.tool !== "read_file" && proposal.tool !== "propose_patch") || typeof proposal.path !== "string" ||
       typeof proposal.rationale !== "string" || (proposal.tool === "propose_patch" && typeof proposal.patch !== "string") ||
       (proposal.tool === "read_file" && Object.hasOwn(proposal, "patch"))) throw Error("Malformed proposal.");
   requireStrings(proposal.evidence, "proposal evidence");
   const validation = requireRecord(receipt.validation, "validation");
   if (typeof validation.ok !== "boolean") throw Error("Malformed validation flag.");
   requireStrings(validation.errors, "validation errors");
-  if (!validation.ok && receipt.jev !== null) throw Error("Rejected validation must not retain a review.");
+  if (validationFailure(validation) !== null && receipt.jev !== null) throw Error("Rejected validation must not retain a review.");
   if (receipt.mode === "base" && receipt.jev !== null) throw Error("Base receipts cannot contain a review.");
   if (receipt.jev === null) {
     if (binding.source !== "none" || binding.requestBody !== null) throw Error("Unreviewed receipt has review provenance.");

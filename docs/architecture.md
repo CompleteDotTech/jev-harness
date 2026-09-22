@@ -45,12 +45,27 @@ A `noul` answer is a single probability of "yes". `answer = p ≥ 0.5 ? yes : no
 
 | Condition | Verdict | Execution |
 | --- | --- | --- |
-| Validation failed (schema, tool, path, diff) | `reject` | withheld; Jev not consulted |
-| No review ran, or `answers` is `null` | `unavailable` | withheld; never treated as safe |
-| Any answer unfavorable, or favorable but below threshold | `proposal_only` | recorded pending; a human sees it |
+| Malformed validation, `ok !== true`, or nonempty errors | `reject` | withheld; Jev not consulted |
+| Missing/malformed review envelope, null answers, or non-null error (even with retained answers) | `unavailable` | withheld; never treated as safe |
+| Any answer missing, non-finite, out of range, inconsistent with its probability, unfavorable, or below threshold | `proposal_only` | recorded pending; a human sees it |
 | All four favorable and each `confidence ≥ REVIEW_CONFIDENCE_THRESHOLD` (0.8) | `permit` | recorded pending; evidence, not authorization |
 
-`base` mode (bench only) is validate-only: anything that validates is `permit`, with a reason that says no reviewer checked whether the proposal is on task. It exists to show the gap Jev closes.
+Decision inputs are plain data. Success validation requires literal `true` and
+an empty dense array of errors. Accessors, inherited fields, and decorated error
+arrays are rejected without running their iterators or getters. A malformed
+answer entry remains `proposal_only`; an absent answer object is `unavailable`.
+These checks are not a sandbox for proxies or code running in the host process.
+
+A successful review pairs answers with `error: null`; a failed review pairs
+`answers: null` with a diagnostic string. Validation failure retains precedence.
+
+Canonical triples have probability in `[0,1]`, confidence in `[0.5,1]`, and
+exactly match `p >= 0.5 ? "yes" : "no"` and `Math.max(p, 1 - p)`. Every
+failing question is named; canonical fixture verdicts are unchanged.
+
+`base` mode (bench only) uses `decideBase` from `src/benchmark`, absent from
+the normal root exports. Its result carries `mode: "base"`, `source: "none"`,
+and `reviewed: false`; never use it as an outage fallback. It is validate-only: anything that validates is `permit`, with a reason that says no reviewer checked whether the proposal is on task. It exists to show the gap Jev closes.
 
 ## Receipt v1
 

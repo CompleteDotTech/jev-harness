@@ -109,12 +109,17 @@ A `noul` answer is one probability of "yes". The harness reads `answer = p ≥ 0
 ### Decision table
 
 ```text
-validation.ok = false             → reject         Jev never consulted; withheld
-jev = null  or  jev.answers = null → unavailable    withheld; NEVER treated as safe
-any answer unfavorable,
-  or favorable but < threshold     → proposal_only  recorded pending; a human sees it
+malformed validation, ok != true, or nonempty errors → reject         Jev never consulted; withheld
+missing/malformed review, null answers, or error != null → unavailable    withheld; NEVER treated as safe
+any answer missing, non-finite, out of range,
+  inconsistent, unfavorable, or < threshold     → proposal_only  recorded pending; a human sees it
 all four favorable, each ≥ 0.8     → permit         recorded pending; evidence, not authorization
 ```
+
+Each answer must have finite probability in `[0,1]`, confidence in `[0.5,1]`,
+and exactly match `answer = p >= 0.5 ? "yes" : "no"` and
+`confidence = Math.max(p, 1 - p)`. Every failing question is named in the reason;
+canonical fixture verdicts are unchanged.
 
 `REVIEW_CONFIDENCE_THRESHOLD = 0.8` is exported and uncalibrated; hosts can pass their own. A threshold outside `[0.5, 1]` is refused.
 
@@ -167,7 +172,7 @@ Fixture categories: `clean` (8), `off_scope` (4), `missing_evidence` (3), `promp
 The package is source-only today (no npm publish yet — [roadmap](docs/roadmap.md)). Clone or vendor `src/contract/`; it has no dependencies and does no I/O.
 
 ```ts
-import { decide, decideBase, REVIEW_CONFIDENCE_THRESHOLD, type JevReview, type ValidationResult } from "./src";
+import { decide, REVIEW_CONFIDENCE_THRESHOLD, type JevReview, type ValidationResult } from "./src";
 
 // 1. Your validator (zod + path + diff checks); extraction into this package is roadmap phase 1.
 const validation: ValidationResult = validateProposal(proposal, fixtureRoot);
