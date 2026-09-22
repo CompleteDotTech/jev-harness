@@ -44,3 +44,6 @@ flag paired with errors, must have no retained review or request provenance.
 The canonical JSON size budget includes escaped string values, object keys,
 and punctuation, and is enforced while encoding rather than after joining an
 unbounded result. Valid v1 receipt verdicts are unchanged.
+
+Creation enforces the size and structural budgets on the complete envelope,
+including integrity metadata, so a returned receipt fits the replay limits.
