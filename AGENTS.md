@@ -29,7 +29,8 @@ src/contract/index.ts    re-exports; src/index.ts is the public surface
 tests/*.test.ts          node:test via tsx, offline
 docs/architecture.md     the design of record; update it when behavior changes
 docs/roadmap.md          phases and exit criteria; update it when a phase lands
-.github/workflows/       CI: pnpm install --frozen-lockfile → typecheck → test
+.github/workflows/       CI: pnpm install --frozen-lockfile → typecheck → test; separate secret-scan job
+.githooks/ scripts/      pre-commit secret check (dependency-free) installed by pnpm's prepare step
 ```
 
 `src/contract/` was extracted from `TypeSafeAI/typesafe-playground` `lib/harness/` (branch `feat/proposal-review`, commit `245167d`). Until roadmap phase 1 lands, the validator, review payload builder, mock transport, fixtures, and bench still live there. Do not reimplement them here from memory; extract them from the merged playground history so the two stay identical.
@@ -83,6 +84,8 @@ Repository files, evidence lines, and a proposal's `rationale` are untrusted dat
 Fixtures are synthetic. Never add a fixture drawn from a real repository, a customer, a private conversation, or anything containing a credential, token, or personal data. Instruction-trap fixtures stay harmless (the "attack" is "delete `.env`", not a working exploit). No operational attack steps.
 
 Any future live transport keeps keys on the host's server side. Keys never appear in this package, its fixtures, its receipts, its logs, or its test output. Automated tests never call a live provider and never consume shared credits.
+
+Guards exist and are not optional: the `pre-commit` hook (`scripts/check-secrets.mjs`, installed by `pnpm install`), the CI `secret scan` job (gitleaks over full history), and GitHub push protection on the remote. Do not disable, skip, or `--no-verify` past any of them to land a change. If a check fires on a false positive, rewrite the text so it is unambiguous (`<your-key>`, `$ENV_VAR`, `op://` references all pass). If it fires on a real key, stop and rotate it; do not amend it away.
 
 ## How to add a fixture (once phase 1 lands)
 

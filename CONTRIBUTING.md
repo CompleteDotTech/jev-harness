@@ -7,12 +7,13 @@ Read [README.md](README.md) for the contract and [AGENTS.md](AGENTS.md) for boun
 ## Development
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile   # also installs the pre-commit secret check (.githooks/)
 pnpm typecheck
 pnpm test
+pnpm check:secrets               # what the hook and CI run; gitleaks adds more if installed
 ```
 
-Tests run offline. Nothing here needs a TypeSafe API key.
+Tests run offline. Nothing here needs a TypeSafe API key, and no key should ever be in a commit; see [SECURITY.md](SECURITY.md) for the guards and what to do if one slips.
 
 ## Pull requests
 
