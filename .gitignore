@@ -11,3 +11,5 @@ package-lock.json
 npm-shrinkwrap.json
 yarn.lock
 bun.lockb
+/.playwright-mcp
+/output/playwright
