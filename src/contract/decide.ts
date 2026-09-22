@@ -109,7 +109,7 @@ export function decide(
       reason:
         "Jev review was not performed. Treated as proposal-only, never as safe.",
     };
-  if (jev.answers === null)
+  if (jev.answers === null || jev.error !== null)
     return {
       verdict: "unavailable",
       reason: `Jev review unavailable: ${jev.error ?? "no answers returned"}. Treated as proposal-only, never as safe.`,
