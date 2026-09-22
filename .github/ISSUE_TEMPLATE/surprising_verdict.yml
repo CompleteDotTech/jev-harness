@@ -1,0 +1,33 @@
+name: Surprising verdict
+description: A proposal got a verdict you did not expect. Bring the receipt.
+labels: ["question-set"]
+body:
+  - type: textarea
+    id: receipt
+    attributes:
+      label: Receipt
+      description: Paste the full receipt JSON. Remove nothing except a personal API key (which should never be in it anyway).
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: expected
+    attributes:
+      label: Verdict you expected
+      options: [permit, proposal_only, reject, unavailable]
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why that verdict is the right one
+      description: Which of the four questions should have answered differently, and what in the task or files shows it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: synthetic
+    attributes:
+      label: Content check
+      options:
+        - label: The task, files, and proposal are synthetic and contain no real repository content, credentials, or personal data.
+          required: true

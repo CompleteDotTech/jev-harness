@@ -1,0 +1,28 @@
+name: Bug report
+description: The code does something its docs or tests say it should not.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened, and where the contract says so
+      description: Link the line in README, docs/architecture.md, or AGENTS.md.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A failing test is ideal. Otherwise the exact inputs.
+      render: ts
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      placeholder: git rev-parse --short HEAD
