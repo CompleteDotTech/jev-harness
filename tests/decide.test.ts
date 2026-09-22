@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   decide,
-  decideBase,
   unfavorable,
   FAVORABLE,
   JEV_MODEL,
@@ -13,6 +12,7 @@ import {
   type ReviewAnswers,
   type ReviewQuestionId,
 } from "../src";
+import { decideBase } from "../src/benchmark";
 
 const ok = { ok: true, errors: [] };
 const bad = { ok: false, errors: ["path escapes the fixture root"] };
