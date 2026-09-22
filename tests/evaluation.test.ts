@@ -71,3 +71,33 @@ test("blinding drops extra labels and detaches the proposer input at runtime", (
   assert.equal(Object.isFrozen(input.files), true);
   assert.equal(Object.isFrozen(input.evidence), true);
 });
+
+test("a frozen case cannot change structural validation across modes or runs", () => {
+  const rejected = row({ runId: "r2", validationPassed: false, verdict: "reject", providerCalls: [] });
+  assert.throws(() => summarizeEvaluation([row(), rejected]), /validation changed/);
+  assert.throws(() => summarizeEvaluation([row(), { ...rejected, runId: "r1", mode: "base" }]), /validation changed/);
+});
+
+test("evaluation arrays reject custom behavior instead of bypassing accounting", () => {
+  let reads = 0;
+  const calls = ["invalid"] as unknown as EvaluationRow["providerCalls"];
+  Object.defineProperty(calls, Symbol.iterator, { value: function* () { reads++; yield "answered"; } });
+  assert.throws(() => summarizeEvaluation([row({ providerCalls: calls })]), /Malformed/);
+  const observations = [row()];
+  Object.defineProperty(observations, Symbol.iterator, { value: function* () { reads++; } });
+  assert.throws(() => summarizeEvaluation(observations), /array/);
+  assert.equal(reads, 0);
+});
+
+test("blinded evidence is read once as plain data without iterators or getters", () => {
+  let reads = 0;
+  const evidence = ["synthetic excerpt"];
+  Object.defineProperty(evidence, Symbol.iterator, { value: function* () {
+    yield reads++ === 0 ? "synthetic excerpt" : { expected: "permit" };
+  } });
+  const input = { task: "Inspect the synthetic file", files: { "a.ts": "example" }, evidence };
+  assert.throws(() => prepareProposerInput(input), /Malformed proposer/);
+  const accessor = Object.defineProperty([], "0", { get() { reads++; return "example"; } });
+  assert.throws(() => prepareProposerInput({ ...input, evidence: accessor }), /Malformed proposer/);
+  assert.equal(reads, 0);
+});
