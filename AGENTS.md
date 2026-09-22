@@ -67,7 +67,7 @@ Changing the *wording* of any question bumps `REVIEW_QUESTION_SET_VERSION`. Addi
 
 The model is pinned: `JEV_MODEL = "jev-1.13.0"`. Never `jev-latest` or `jev-preview`. Moving the pin is its own PR and re-runs the live bench in the playground.
 
-`noul` questions have no `criteria` field on the wire; criteria kept beside a question document intent and are stripped before sending. Do not rely on them reaching the model.
+`noul` supports optional `criteria: { true: string, false: string }` on the wire according to the [official Noul documentation](https://docs.typesafe.ai/primitives/noul) (checked 2026-09-22). The playground's historical stripping is a local validator behavior, not an API-wide rule. Preserve explicitly supplied criteria when the payload builder is extracted, test the exact post-validation request body, and version any change to effective question semantics. The 0.8 threshold is uncalibrated; pinning a model is not calibration. See [wire-contract guidance](docs/hardening/07-noul-contract.md).
 
 ### Receipts
 
