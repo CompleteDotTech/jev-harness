@@ -142,7 +142,9 @@ function auditDecision(receiptInput: unknown, bindingInput: unknown): Decision {
 export function createBoundReceipt(receipt: Receipt, binding: EvidenceBinding): BoundReceipt {
   const payload = JSON.parse(canonicalJson({ bindingVersion: 1, receipt, binding }));
   auditDecision(payload.receipt, payload.binding);
-  return { ...payload, integrity: { algorithm: "sha256", digest: digest(payload) } } as BoundReceipt;
+  const envelope = { ...payload, integrity: { algorithm: "sha256", digest: digest(payload) } };
+  canonicalJson(envelope); // Creation and replay share the complete envelope budget.
+  return envelope as BoundReceipt;
 }
 
 /** Expected binding must come from trusted current host state, not the receipt. */
