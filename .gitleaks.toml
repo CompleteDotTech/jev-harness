@@ -1,0 +1,27 @@
+# gitleaks configuration. Default rules plus two project-specific ones.
+# Run locally:  gitleaks git .          (history)   gitleaks protect --staged   (pre-commit)
+# Note: gitleaks uses Go RE2; no lookaheads. Placeholders like <your-key>, $ENV, and
+# op://… never match because '<', '$', and ':' are outside the value character class.
+title = "jev-harness"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "typesafe-api-key-assignment"
+description = "A TypeSafe API key assigned inline instead of read from the environment"
+regex = '''(?i)TYPESAFE_API_KEY\s*[:=]\s*["']?([A-Za-z0-9_\-\.]{16,})'''
+keywords = ["typesafe_api_key"]
+
+[[rules]]
+id = "generic-bearer-header"
+description = "A literal bearer token in an Authorization header"
+regex = '''(?i)authorization["']?\s*[:=]\s*["']?bearer\s+([A-Za-z0-9_\-\.=]{20,})'''
+keywords = ["bearer"]
+
+[allowlist]
+description = "Lockfile hashes and the SVG banner are not secrets"
+paths = [
+  '''^pnpm-lock\.yaml$''',
+  '''^docs/assets/.*\.svg$''',
+]
