@@ -1,5 +1,5 @@
 /** Offline evaluation bookkeeping, not a provider client or provenance authority. */
-import { dataRecord } from "../contract/input";
+import { dataArray, dataRecord } from "../contract/input";
 import type { Fixture, Proposal, ReviewMode, ReviewVerdict } from "../contract/types";
 
 export type EvaluationLabel = "acceptable" | "unacceptable" | "clarification_required";
@@ -42,39 +42,42 @@ const empty = (): ModeCounts => ({ pipelineCases: 0, validationRejected: 0,
   semanticBadObservations: 0, distinctSemanticBadCases: 0, badPermits: 0,
   acceptableProposalsHeld: 0, legitimateAbstentions: 0, clarificationPermits: 0 });
 
-function checkRow(input: EvaluationRow): void {
+function checkRow(input: unknown): EvaluationRow {
   const row = dataRecord(input);
+  const calls = dataArray(row?.providerCalls);
   if (!row || ![row.cohort, row.runId, row.caseId].every(v => typeof v === "string" && v.length > 0) ||
       (row.source !== "mock" && row.source !== "jev") || (row.mode !== "base" && row.mode !== "plus_jev") ||
       (typeof row.label !== "string" || !["acceptable", "unacceptable", "clarification_required"].includes(row.label)) ||
       typeof row.validationPassed !== "boolean" ||
       (typeof row.verdict !== "string" || !["permit", "proposal_only", "reject", "unavailable"].includes(row.verdict)) ||
-      !Array.isArray(row.providerCalls) || !Array.from(row.providerCalls).every(v => v === "answered" || v === "unavailable"))
+      !calls || !calls.every(v => v === "answered" || v === "unavailable"))
     throw Error("Malformed evaluation row.");
-  const calls = input.providerCalls;
-  if (!input.validationPassed) {
-    if (input.verdict !== "reject" || calls.length !== 0) throw Error("Validation rejection cannot contain provider calls or a non-reject verdict.");
-  } else if (input.mode === "base") {
-    if (input.verdict !== "permit" || calls.length !== 0) throw Error("Base mode must be validate-only.");
+  if (!row.validationPassed) {
+    if (row.verdict !== "reject" || calls.length !== 0) throw Error("Validation rejection cannot contain provider calls or a non-reject verdict.");
+  } else if (row.mode === "base") {
+    if (row.verdict !== "permit" || calls.length !== 0) throw Error("Base mode must be validate-only.");
   } else {
-    if (input.verdict === "reject") throw Error("A validated reviewed proposal cannot have a structural reject verdict.");
+    if (row.verdict === "reject") throw Error("A validated reviewed proposal cannot have a structural reject verdict.");
     const last = calls.at(-1);
-    if (input.verdict === "unavailable" ? last === "answered" : last !== "answered")
+    if (row.verdict === "unavailable" ? last === "answered" : last !== "answered")
       throw Error("Verdict and final provider attempt disagree.");
   }
+  return { ...row, providerCalls: calls } as unknown as EvaluationRow;
 }
 
 /** Reject mixed treatments and duplicate observations instead of inflating totals. */
 export function summarizeEvaluation(rows: readonly EvaluationRow[]): EvaluationSummary {
-  if (!Array.isArray(rows)) throw Error("Evaluation rows must be an array.");
+  const observations = dataArray(rows);
+  if (!observations) throw Error("Evaluation rows must be a dense plain array.");
   const byMode = { base: empty(), plus_jev: empty() };
   const runs = new Set<string>(), cases = new Set<string>(), seen = new Set<string>();
   const labels = new Map<string, EvaluationLabel>();
+  const validation = new Map<string, boolean>();
   const semanticCases = { base: new Set<string>(), plus_jev: new Set<string>() };
   let cohort: string | null = null;
   let source: "mock" | "jev" | null = null;
-  for (const row of rows as readonly EvaluationRow[]) {
-    checkRow(row);
+  for (const observation of observations) {
+    const row = checkRow(observation);
     if (cohort === null) { cohort = row.cohort; source = row.source; }
     if (row.cohort !== cohort || row.source !== source) throw Error("Mixed evaluation cohorts or mock/live sources.");
     const identity = JSON.stringify([row.runId, row.caseId, row.mode]);
@@ -83,6 +86,10 @@ export function summarizeEvaluation(rows: readonly EvaluationRow[]): EvaluationS
     const previous = labels.get(row.caseId);
     if (previous !== undefined && previous !== row.label) throw Error("Case labels changed within a frozen cohort.");
     labels.set(row.caseId, row.label);
+    const previousValidation = validation.get(row.caseId);
+    if (previousValidation !== undefined && previousValidation !== row.validationPassed)
+      throw Error("Case validation changed within a frozen cohort.");
+    validation.set(row.caseId, row.validationPassed);
     runs.add(row.runId); cases.add(row.caseId);
     const count = byMode[row.mode];
     count.pipelineCases++;
@@ -119,10 +126,11 @@ export interface BlindedProposer {
 export function prepareProposerInput(input: Pick<Fixture, "task" | "files" | "evidence">): ProposerInput {
   const record = dataRecord(input);
   const files = dataRecord(record?.files);
+  const evidence = dataArray(record?.evidence);
   if (!record || typeof record.task !== "string" || !files || !Object.values(files).every(v => typeof v === "string") ||
-      !Array.isArray(record.evidence) || !Array.from(record.evidence).every(v => typeof v === "string"))
+      !evidence || !evidence.every(v => typeof v === "string"))
     throw Error("Malformed proposer input.");
   return Object.freeze({ task: record.task,
     files: Object.freeze({ ...files }) as Readonly<Record<string, string>>,
-    evidence: Object.freeze([...record.evidence]) as readonly string[] });
+    evidence: Object.freeze(evidence) as readonly string[] });
 }

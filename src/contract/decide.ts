@@ -19,10 +19,9 @@ import { dataRecord, validationFailure } from "./input";
 
 /**
  * Minimum probability mass on the favorable side before a question counts as
- * favorable. Uncalibrated: four live runs on 20 synthetic fixtures showed
- * bad permitted = 0 at every level 0.50–0.90, so the threshold only costs good
- * proposals on that set. 0.8 follows the noul guidance for "false positives
- * are costly". Hosts may pass their own value.
+ * favorable. This default is uncalibrated; hosts may pass their own value.
+ * A pinned model and development-set threshold sweep do not establish an
+ * error rate. See docs/hardening/07-noul-contract.md for calibration limits.
  */
 export const REVIEW_CONFIDENCE_THRESHOLD = 0.8;
 

@@ -110,6 +110,10 @@ input evaluation; it is never clamped. The default is **0.8, uncalibrated**.
 Partial answer objects degrade to `proposal_only`; a missing answers object
 makes the review envelope unavailable. See the [hardening notes](docs/hardening/README.md).
 
+Validation errors must be a dense plain array. Custom iterators, index getters,
+and decorated arrays are rejected without invocation. Every failing review
+question is named in the decision reason; canonical fixture verdicts are unchanged.
+
 A successful review has answers and `error: null`; a failed review has null
 answers and an error string. Runtime checks remain necessary even with these
 discriminated TypeScript types. Supported external inputs are JSON/plain data,
@@ -152,6 +156,9 @@ model/source, exact serialized request, task, and complete file snapshot.
 decision offline. A dirty file invalidates an old binding even when Git HEAD
 has not changed. See [receipt binding](docs/hardening/05-receipt-binding.md).
 
+Audit enums must be exact strings. Rejected validation cannot retain review
+provenance, and the canonical encoding limit includes keys and escaped strings.
+
 A digest is **not a signature**. A malicious writer can alter a record and
 recompute it. Authenticated provenance, protected durable storage, retention,
 and authorization remain host responsibilities. Do not publish private source
@@ -168,6 +175,8 @@ internal deep imports; API separation is not an authorization sandbox.
 `src/benchmark/evaluation.ts` provides explicit case/call accounting and
 `prepareProposerInput` for runtime removal of fixture metadata before a real
 proposer sees input. The original `Proposer` type remains for scripted fixtures.
+Frozen cases must keep their labels and structural validation outcomes across
+runs and modes. Arrays are copied as plain data without invoking custom behavior.
 See [evaluation and blinding](docs/hardening/09-evaluation.md).
 
 ## Historical measurements: upstream, not new results from this repository

@@ -89,3 +89,35 @@ test("no-review and failed-review receipts remain auditable without inventing su
   const failed: Receipt = { ...noReview, jev: failure, ...decide(receipt.validation, failure) };
   assert.equal(replayBoundReceipt(createBoundReceipt(failed, binding), binding).ok, true);
 });
+
+test("receipt enums must be strings rather than coercible arrays", () => {
+  for (const field of ["mode", "arm"] as const) {
+    const { receipt, binding } = sample();
+    const malformed = { ...receipt, [field]: [receipt[field]] } as unknown as Receipt;
+    assert.throws(() => createBoundReceipt(malformed, binding), /Malformed receipt/);
+  }
+  const { receipt, binding } = sample();
+  const malformed = { ...receipt, proposal: { ...receipt.proposal, tool: ["propose_patch"] } } as unknown as Receipt;
+  const request = JSON.parse(binding.requestBody!);
+  request.state.proposal = malformed.proposal;
+  assert.throws(() => createBoundReceipt(malformed, { ...binding, requestBody: JSON.stringify(request) }), /Malformed proposal/);
+});
+
+test("contradictory validation cannot retain provider evidence in an audit receipt", () => {
+  const { receipt, binding } = sample();
+  const validation = { ok: true, errors: ["synthetic validation failure"] };
+  const rejected: Receipt = { ...receipt, validation, ...decide(validation, receipt.jev),
+    execution: { applied: false, status: "withheld", note: "Nothing ran." } };
+  assert.throws(() => createBoundReceipt(rejected, binding), /Rejected validation/);
+  const noReview = { ...rejected, jev: null };
+  const noBinding: EvidenceBinding = { ...binding, source: "none", requestBody: null };
+  assert.equal(replayBoundReceipt(createBoundReceipt(noReview, noBinding), noBinding).ok, true);
+});
+
+test("canonical size limits include escaped strings, keys, and container overhead", () => {
+  assert.equal(canonicalJson("x".repeat(1_999_998)).length, 2_000_000);
+  assert.throws(() => canonicalJson("x".repeat(1_999_999)), /size limit/);
+  assert.throws(() => canonicalJson("\n".repeat(1_000_000)), /size limit/);
+  assert.throws(() => canonicalJson({ ["x".repeat(2_000_000)]: 0 }), /size limit/);
+  assert.throws(() => canonicalJson(["x".repeat(999_998), "x".repeat(999_998)]), /size limit/);
+});

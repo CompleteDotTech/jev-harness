@@ -67,6 +67,9 @@ list. Canonical answer triples require finite probability in [0,1], confidence
 in [0.5,1], and exact agreement with the derivation. Success/failure review
 types are mutually exclusive, and runtime parsing remains required. Data-record
 checks do not constitute a sandbox for malicious same-process JavaScript.
+Error arrays must be dense plain data; custom iterators, index getters, and
+decorated arrays are rejected without invocation. Every failing question is named
+in the decision reason, and canonical fixture verdicts remain unchanged.
 
 Question IDs, directions, and tool metadata are frozen and readonly. A policy
 change must be reviewed and versioned, not implemented by mutating an export.
@@ -84,6 +87,9 @@ host-supplied immutable decision revision, policy version, threshold, question
 version, model/source, exact serialized request, task, and file snapshot.
 The adapter hashes bounded canonical JSON and checks stored verdict/status
 against offline replay and independently supplied expected binding.
+Enum fields require exact strings. Any validation rejection must have no retained
+review provenance. The encoding budget includes escaped strings, keys, and
+punctuation and is enforced before joining containers.
 
 A SHA-256 digest is not a signature and does not authenticate a malicious
 writer. Host-authenticated provenance, protected storage, deployment identity,
@@ -99,7 +105,9 @@ A provider failure must never invoke the base helper as a fallback.
 
 `src/benchmark/evaluation.ts` counts pipeline cases, provider attempts, retries,
 unique semantic cases, and abstentions separately. It rejects mixed treatment
-labels and duplicate observations. `prepareProposerInput` whitelists and copies
+labels, changing structural validation for the same frozen case, and duplicate
+observations. Arrays are copied from own data entries without invoking custom
+iterators or getters. `prepareProposerInput` whitelists and copies
 only task/files/evidence before a `BlindedProposer` sees them. The original
 labeled `Proposer` remains a scripted-fixture interface, not a blinded study
 contract. These helpers do not run a benchmark or authenticate labels.

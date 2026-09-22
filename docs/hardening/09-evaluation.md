@@ -22,7 +22,8 @@ review coverage. Empty inputs return zero counts and null cohort/source, not
 perfect accuracy or an inferred treatment.
 
 Rows must belong to one frozen cohort and one mock/live source. The helper
-rejects duplicate (run, case, mode) observations, changed case labels, and
+rejects duplicate (run, case, mode) observations, changed case labels or structural
+validation outcomes across runs/modes, and
 impossible validation/call/verdict combinations. A cohort identifier must bind
 the model, exact questions including criteria, threshold, dataset and label
 revisions, and evaluation code. These identifiers are evaluator assertions,
@@ -56,6 +57,11 @@ freezes the result. Merely annotating an input with `Pick<Fixture, ...>` does no
 remove extra fields at runtime. Never pass the entire labeled Fixture, arm,
 expected verdicts, mock values, or scripted proposals to a live proposer.
 The existing `Proposer` interface remains for scripted-fixture compatibility.
+
+Observation, provider-call, and evidence arrays must be dense plain data arrays.
+The helpers copy own index values once without executing custom iterators or
+getters; malformed arrays cannot hide attempts or substitute labeled objects
+between validation and copying. This is not a sandbox for same-process proxies.
 
 Content itself can leak labels. Independently inspect filenames, task text,
 evidence, and file bodies for embedded expected outcomes; a field whitelist
