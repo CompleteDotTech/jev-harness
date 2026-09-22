@@ -1,0 +1,6 @@
+# Every change requests a review from the maintainer. Contract files are called out
+# explicitly so the request is unmistakable when they move.
+*                          @BunsDev
+/src/contract/             @BunsDev
+/.github/                  @BunsDev
+/SECURITY.md               @BunsDev
