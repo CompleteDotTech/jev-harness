@@ -1,0 +1,13 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# pnpm-only: these would install a different tree than pnpm-lock.yaml describes.
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+bun.lockb
