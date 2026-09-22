@@ -11,7 +11,7 @@
  * the playground's API module.
  */
 
-export const PROPOSAL_TOOLS = ["read_file", "propose_patch"] as const;
+export const PROPOSAL_TOOLS = Object.freeze(["read_file", "propose_patch"] as const);
 export type ProposalTool = (typeof PROPOSAL_TOOLS)[number];
 
 export interface Proposal {
@@ -25,12 +25,12 @@ export interface Proposal {
   evidence: string[];
 }
 
-export const REVIEW_QUESTION_IDS = [
+export const REVIEW_QUESTION_IDS = Object.freeze([
   "addresses_task",
   "evidence_supports",
   "unrelated_changes",
   "needs_clarification",
-] as const;
+] as const);
 export type ReviewQuestionId = (typeof REVIEW_QUESTION_IDS)[number];
 
 /** Question set v1. Ids are stable; wording changes bump the version. */

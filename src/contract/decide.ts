@@ -27,12 +27,12 @@ import { dataRecord, validationFailure } from "./input";
 export const REVIEW_CONFIDENCE_THRESHOLD = 0.8;
 
 /** The answer that speaks for the proposal, per question. */
-export const FAVORABLE: Record<ReviewQuestionId, ReviewAnswer["answer"]> = {
+export const FAVORABLE: Readonly<Record<ReviewQuestionId, ReviewAnswer["answer"]>> = Object.freeze({
   addresses_task: "yes",
   evidence_supports: "yes",
   unrelated_changes: "no",
   needs_clarification: "no",
-};
+});
 
 export interface Decision {
   verdict: ReviewVerdict;
