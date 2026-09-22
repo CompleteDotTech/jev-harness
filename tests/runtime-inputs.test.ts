@@ -39,3 +39,17 @@ test("JSON round-trips remain usable and invalid configuration still throws", ()
   assert.equal(decide(JSON.parse(JSON.stringify(ok)), JSON.parse(JSON.stringify(review()))).verdict, "permit");
   assert.throws(() => decide(undefined, undefined, 0.49), /between 0.5 and 1/);
 });
+
+test("validation error arrays cannot hide failures through iterators or getters", () => {
+  let reads = 0;
+  const iterator = ["validation failed"];
+  Object.defineProperty(iterator, Symbol.iterator, { value: function* () { reads++; } });
+  const getter = Object.defineProperty([], "0", { get() { reads++; return "failed"; } });
+  const inherited = Object.setPrototypeOf(Array(1), { 0: "failed" });
+  const decorated = Object.assign([], { ignored: "failed" });
+  for (const errors of [iterator, getter, inherited, decorated]) {
+    assert.equal(decide({ ok: true, errors }, review()).verdict, "reject");
+    assert.equal(decideBase({ ok: true, errors }).verdict, "reject");
+  }
+  assert.equal(reads, 0);
+});
