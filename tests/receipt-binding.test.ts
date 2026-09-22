@@ -121,3 +121,34 @@ test("canonical size limits include escaped strings, keys, and container overhea
   assert.throws(() => canonicalJson({ ["x".repeat(2_000_000)]: 0 }), /size limit/);
   assert.throws(() => canonicalJson(["x".repeat(999_998), "x".repeat(999_998)]), /size limit/);
 });
+
+
+test("created receipts reserve the full envelope size needed for replay", () => {
+  const { receipt, binding } = sample();
+  const noReview: Receipt = { ...receipt, jev: null, ...decide(receipt.validation, null),
+    execution: { applied: false, status: "withheld", note: "Nothing ran." } };
+  const noBinding: EvidenceBinding = { ...binding, source: "none", requestBody: null };
+  noBinding.workspace.files["a.ts"] = "";
+  const overhead = JSON.stringify(createBoundReceipt(noReview, noBinding)).length;
+  noBinding.workspace.files["a.ts"] = "x".repeat(2_000_000 - overhead);
+  const envelope = createBoundReceipt(noReview, noBinding);
+  assert.equal(JSON.stringify(envelope).length, 2_000_000);
+  assert.equal(replayBoundReceipt(envelope, noBinding).ok, true);
+  noBinding.workspace.files["a.ts"] += "x";
+  assert.throws(() => createBoundReceipt(noReview, noBinding), /size limit/);
+});
+
+test("created receipts reserve the integrity fields in the structural budget", () => {
+  const { receipt, binding } = sample();
+  const noReview: Receipt = { ...receipt, jev: null, ...decide(receipt.validation, null),
+    execution: { applied: false, status: "withheld", note: "Nothing ran." } };
+  const noBinding: EvidenceBinding = { ...binding, source: "none", requestBody: null };
+  const count = (value: unknown): number => 1 + (value && typeof value === "object"
+    ? Object.values(value).reduce<number>((total, child) => total + count(child), 0) : 0);
+  const overhead = count(createBoundReceipt(noReview, noBinding));
+  noReview.proposal.evidence = Array<string>(100_000 - overhead).fill("");
+  const envelope = createBoundReceipt(noReview, noBinding);
+  assert.equal(replayBoundReceipt(envelope, noBinding).ok, true);
+  noReview.proposal.evidence.push("");
+  assert.throws(() => createBoundReceipt(noReview, noBinding), /structural limits/);
+});
