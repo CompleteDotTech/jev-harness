@@ -40,11 +40,13 @@ are not new live measurements. Apply the [evaluation plan](hardening/09-evaluati
 - [ ] Document receipt-to-host-event mapping and preserve model/source/mode provenance
 - [ ] Complete the [host-conformance cases](hardening/08-host-conformance.md) in each real host before a gated pilot
 
-## 3 · Tool router
+## 3 · Tool router (Tier 1, second seam)
 
-- [ ] Intent plus permitted tool IDs to top-k routing contract and clarification signal
-- [ ] Measure full-context tool selection against a bounded Jev shortlist
-- [ ] Reuse the upstream `typesafe-router` where appropriate
+- [x] `ToolRouter` contract: intent + host-available tool ids → top-k descriptors, clarification, confidence/probability floors, deterministic cost policy
+- [x] Offline synthetic comparison: full vs selected schemas, explicit load/eviction state, receipts and cost/token proxies (`pnpm bench:routing`)
+- [ ] Interactive synthetic browser demonstration
+- [ ] Experiment: N tools in context vs Jev top-k, measured on token cost and correct-tool rate
+- [ ] Live host adapter using `typesafe-router` where it fits; [normalization boundary documented](routing.md#host-adapter-and-reuse), no duplicate provider client in this package
 
 ## 4 · Context scoring
 
@@ -66,3 +68,5 @@ verification gates are satisfied.
 A new agent runtime, executing model-proposed code inside this package, or
 sending real source/identity/private memory to a provider without a reviewed
 egress policy. A model verdict is never a grant of authority.
+
+The offline routing experiment is independent of phase 1 extraction. Its scripted outcomes and byte/token proxies do not satisfy the live experiment exit criteria or establish execution-speed improvements.

@@ -22,7 +22,7 @@ read grant does not automatically allow uploading that file to a provider.
 ## Implemented pipeline and pending pieces
 
 The root exports shared types, `decide`, `unfavorable`, threshold, and immutable
-question/direction/tool metadata. It checks a host-supplied validation result;
+question/direction/tool metadata, plus the pure routing API. It checks a host-supplied validation result;
 it does not prove the host performed filesystem validation. The proposal
 validator, review payload builder, live transport integration, original fixture
 suite, and full runner remain pending extraction from the playground.
@@ -89,7 +89,8 @@ The adapter hashes bounded canonical JSON and checks stored verdict/status
 against offline replay and independently supplied expected binding.
 Enum fields require exact strings. Any validation rejection must have no retained
 review provenance. The encoding budget includes escaped strings, keys, and
-punctuation and is enforced before joining containers.
+punctuation and is enforced before joining containers. Creation checks the
+complete envelope, including integrity metadata, against the replay limits.
 
 A SHA-256 digest is not a signature and does not authenticate a malicious
 writer. Host-authenticated provenance, protected storage, deployment identity,
@@ -114,9 +115,9 @@ contract. These helpers do not run a benchmark or authenticate labels.
 
 ## Host seams and acceptance
 
-Future seams include `ProposalReview`, `ToolRouter` (closed-set top-k permitted
-tools), and `ContextScorer` (relevance per chunk). The latter two are not
-implemented here. A context-scoring experiment needs an egress policy and a
+The routing contract and offline synthetic comparison are implemented; live
+integration and measurements remain pending. Planned host work includes the Rust
+`ProposalReview` seam and `ContextScorer` (relevance per chunk). A context-scoring experiment needs an egress policy and a
 cost model comparing scoring/re-prefill with forfeited prefix-cache reuse.
 The planned Rust seam does not put provider HTTP clients into a pure crate;
 transport stays in an appropriate host adapter.
@@ -131,3 +132,7 @@ Reconcile unknown outcomes before retrying. Never claim a pending action was
 committed. Four favorable semantic answers do not replace independent tests,
 authorization, or isolated execution. Future evaluation must follow the
 [held-out accounting and blinding plan](hardening/09-evaluation.md).
+
+## Routing experiment
+
+`src/routing/` supplies a pure catalog, injected `ToolRouter` seam, deterministic selection policy and schema context assembly. It does not change proposal-review decisions. `examples/routing/` contains synthetic evidence and paired context evaluation. See [Routing evidence and dynamic tool context](routing.md) for outcome semantics, host adapter mapping, cost assumptions and the live-measurement gate.

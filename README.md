@@ -43,6 +43,7 @@ Signed commits and the existing secret guards remain required.
 | Optional bound-receipt audit adapter | Implemented at `src/audit/receipt.ts`; offline SHA-256 binding/replay, not authentication |
 | Benchmark-only verdict helper | Implemented at `src/benchmark`; explicitly records no-review provenance |
 | Evaluation accounting and blinded proposer inputs | Implemented at `src/benchmark/evaluation.ts`; not a live experiment runner |
+| Routing contract and offline synthetic comparison | Implemented at `src/routing/` and `examples/routing/`; no live provider or execution |
 | Proposal schema/path/diff validator, Jev payload builder, transport integration, fixture suite, full runner | Still pending extraction from the playground |
 | Host authorization, sandbox, execution, and durable storage | Host responsibilities; not implemented in this package |
 
@@ -196,11 +197,23 @@ synthetic arithmetic tests are not a reproduction of that live experiment.
 The threshold sweep on the same examples is not held-out calibration. Preserve
 historical label corrections rather than silently rewriting old results.
 
+## Dynamic tool context experiment
+
+`src/routing/` adds an injected `ToolRouter` seam, a schema catalog, availability snapshots, cost-aware top-k selection and explicit schema loading/eviction. No tool or sub-agent executes. Run the paired synthetic comparison:
+
+```sh
+pnpm --silent bench:routing > routing-run.json
+```
+
+The run artifact includes receipts, full/lean context bytes, token estimates, acceptable-tool inclusion and cheapest acceptable selection. Evidence is scripted; local timing is not Jev or execution latency. Router overhead is counted separately so fewer schemas do not automatically imply savings. See [the design, metrics and host adapter boundary](docs/routing.md).
+
+
 ## Roadmap and related projects
 
 The full extraction remains gated on the canonical upstream playground history.
-Planned host seams include `ProposalReview`, a closed-set `ToolRouter`, and a
-measure-first `ContextScorer`. Routing and scoring are not implemented here.
+The routing contract and offline synthetic comparison are implemented; live
+integration and measurements remain pending. Planned host work includes a Rust
+`ProposalReview` seam and a measure-first `ContextScorer`.
 Context scoring needs an egress policy and evidence that its costs beat cache
 reuse before a runtime integration. See [architecture](docs/architecture.md)
 and [roadmap](docs/roadmap.md) for scope and acceptance gates.
