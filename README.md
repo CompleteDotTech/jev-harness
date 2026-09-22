@@ -95,7 +95,7 @@ Three rules make this safe to reason about:
 
 ### Four questions
 
-Pinned to **`jev-1.13.0`** — never `jev-latest`, because the questions and the threshold are calibrated against one version. Ids are stable; a wording change bumps `REVIEW_QUESTION_SET_VERSION`.
+Pinned to **`jev-1.13.0`** — never `jev-latest`, to preserve reproducibility; the threshold remains uncalibrated. Ids are stable; a wording change bumps `REVIEW_QUESTION_SET_VERSION`.
 
 | id | Instruction sent to Jev | Favorable |
 | --- | --- | --- |
