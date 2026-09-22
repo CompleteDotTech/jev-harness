@@ -13,13 +13,26 @@ export function dataRecord(value: unknown): Record<string, unknown> | null {
   return out;
 }
 
+/** Copy dense plain arrays without invoking custom iterators or index getters. */
+export function dataArray(value: unknown): unknown[] | null {
+  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) return null;
+  if (Reflect.ownKeys(value).length !== value.length + 1) return null;
+  const out: unknown[] = [];
+  for (let index = 0; index < value.length; index++) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+    if (!descriptor || !("value" in descriptor)) return null;
+    out.push(descriptor.value);
+  }
+  return out;
+}
+
 /** A success requires a real boolean and an empty, well-formed error list. */
 export function validationFailure(value: unknown): string | null {
   const validation = dataRecord(value);
-  if (!validation || typeof validation.ok !== "boolean" || !Array.isArray(validation.errors))
+  if (!validation || typeof validation.ok !== "boolean")
     return "Validation failed: malformed validation result.";
-  const errors: unknown[] = Array.from(validation.errors);
-  if (!errors.every((error): error is string => typeof error === "string"))
+  const errors = dataArray(validation.errors);
+  if (!errors || !errors.every((error): error is string => typeof error === "string"))
     return "Validation failed: malformed validation errors.";
   if (!validation.ok || errors.length > 0)
     return `Validation failed: ${errors.join("; ") || "validator did not succeed"}`;
