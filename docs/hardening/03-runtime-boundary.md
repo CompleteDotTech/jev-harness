@@ -13,8 +13,10 @@ throws as a deliberate configuration error; it is never clamped.
 
 Plain records are copied through own data-property descriptors. Inherited
 fields, class instances, and accessors are rejected. This boundary is for
-JSON/plain data, not adversarial same-process JavaScript: proxies and malicious
-array accessors require process isolation and are not a supported trust domain.
+JSON/plain data, not adversarial same-process JavaScript. Error arrays must be
+dense own data entries; custom iterators and accessors are rejected without
+invocation. Proxies still require process isolation and are not a supported
+trust domain.
 
 Review metadata is shape-checked, not authenticated. The host still pins the
 expected model/source, verifies provenance, binds snapshots, and authorizes
