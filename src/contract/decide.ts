@@ -54,8 +54,17 @@ export function unfavorable(
   const out: string[] = [];
   for (const id of REVIEW_QUESTION_IDS) {
     const a = answers[id];
-    if (!a || !Number.isFinite(a.probability) || !Number.isFinite(a.confidence))
+    if (
+      !a ||
+      !Number.isFinite(a.probability) || a.probability < 0 || a.probability > 1 ||
+      !Number.isFinite(a.confidence) || a.confidence < 0.5 || a.confidence > 1
+    )
       out.push(`${id}: no usable answer`);
+    else if (
+      a.answer !== (a.probability >= 0.5 ? "yes" : "no") ||
+      a.confidence !== Math.max(a.probability, 1 - a.probability)
+    )
+      out.push(`${id}: answer or confidence disagrees with probability`);
     else if (a.answer !== FAVORABLE[id])
       out.push(`${id}: ${a.answer} (${percent(a.confidence)})`);
     else if (a.confidence < threshold)
