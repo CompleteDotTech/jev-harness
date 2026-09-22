@@ -110,7 +110,7 @@ A `noul` answer is one probability of "yes". The harness reads `answer = p ≥ 0
 
 ```text
 validation.ok = false             → reject         Jev never consulted; withheld
-jev = null  or  jev.answers = null → unavailable    withheld; NEVER treated as safe
+jev = null, answers = null, or error != null → unavailable    withheld; NEVER treated as safe
 any answer missing, non-finite, out of range,
   inconsistent, unfavorable, or < threshold     → proposal_only  recorded pending; a human sees it
 all four favorable, each ≥ 0.8     → permit         recorded pending; evidence, not authorization
