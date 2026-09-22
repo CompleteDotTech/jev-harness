@@ -37,3 +37,10 @@ Do not publish full receipts from private repositories or credentials.
 Tests cover 0.6/0.8 threshold ambiguity, dirty snapshots, source/model/request
 substitution, post-construction mutation, digest/metadata corruption, stored
 verdict/status inconsistency, and deterministic bounded serialization.
+
+Runtime enum fields must be exact strings; arrays that stringify to a mode,
+arm, source, or tool are rejected. Any rejected validation, including a true
+flag paired with errors, must have no retained review or request provenance.
+The canonical JSON size budget includes escaped string values, object keys,
+and punctuation, and is enforced while encoding rather than after joining an
+unbounded result. Valid v1 receipt verdicts are unchanged.
