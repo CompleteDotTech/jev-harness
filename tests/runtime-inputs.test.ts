@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { decide, decideBase, unfavorable, JEV_MODEL } from "../src";
+import { decide, unfavorable, JEV_MODEL } from "../src";
+import { decideBase } from "../src/benchmark";
 const ok = { ok: true, errors: [] };
 const review = () => ({
   model: JEV_MODEL, error: null, source: "mock", latencyMs: 1,

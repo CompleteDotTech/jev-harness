@@ -172,7 +172,7 @@ Fixture categories: `clean` (8), `off_scope` (4), `missing_evidence` (3), `promp
 The package is source-only today (no npm publish yet — [roadmap](docs/roadmap.md)). Clone or vendor `src/contract/`; it has no dependencies and does no I/O.
 
 ```ts
-import { decide, decideBase, REVIEW_CONFIDENCE_THRESHOLD, type JevReview, type ValidationResult } from "./src";
+import { decide, REVIEW_CONFIDENCE_THRESHOLD, type JevReview, type ValidationResult } from "./src";
 
 // 1. Your validator (zod + path + diff checks); extraction into this package is roadmap phase 1.
 const validation: ValidationResult = validateProposal(proposal, fixtureRoot);

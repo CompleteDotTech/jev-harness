@@ -63,7 +63,9 @@ Canonical triples have probability in `[0,1]`, confidence in `[0.5,1]`, and
 exactly match `p >= 0.5 ? "yes" : "no"` and `Math.max(p, 1 - p)`. Every
 failing question is named; canonical fixture verdicts are unchanged.
 
-`base` mode (bench only) is validate-only: anything that validates is `permit`, with a reason that says no reviewer checked whether the proposal is on task. It exists to show the gap Jev closes.
+`base` mode (bench only) uses `decideBase` from `src/benchmark`, absent from
+the normal root exports. Its result carries `mode: "base"`, `source: "none"`,
+and `reviewed: false`; never use it as an outage fallback. It is validate-only: anything that validates is `permit`, with a reason that says no reviewer checked whether the proposal is on task. It exists to show the gap Jev closes.
 
 ## Receipt v1
 
