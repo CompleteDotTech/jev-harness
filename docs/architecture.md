@@ -47,8 +47,12 @@ A `noul` answer is a single probability of "yes". `answer = p ≥ 0.5 ? yes : no
 | --- | --- | --- |
 | Validation failed (schema, tool, path, diff) | `reject` | withheld; Jev not consulted |
 | No review ran, or `answers` is `null` | `unavailable` | withheld; never treated as safe |
-| Any answer unfavorable, or favorable but below threshold | `proposal_only` | recorded pending; a human sees it |
+| Any answer missing, non-finite, out of range, inconsistent with its probability, unfavorable, or below threshold | `proposal_only` | recorded pending; a human sees it |
 | All four favorable and each `confidence ≥ REVIEW_CONFIDENCE_THRESHOLD` (0.8) | `permit` | recorded pending; evidence, not authorization |
+
+Canonical triples have probability in `[0,1]`, confidence in `[0.5,1]`, and
+exactly match `p >= 0.5 ? "yes" : "no"` and `Math.max(p, 1 - p)`. Every
+failing question is named; canonical fixture verdicts are unchanged.
 
 `base` mode (bench only) is validate-only: anything that validates is `permit`, with a reason that says no reviewer checked whether the proposal is on task. It exists to show the gap Jev closes.
 

@@ -40,3 +40,16 @@ test("canonical probability grid preserves the v1 decision table", () => {
     assert.equal(decide(ok, review(answers)).verdict, expected);
   }
 });
+
+test("canonical JSON answers preserve threshold endpoints and name every miss", () => {
+  const answers = favorable();
+  for (const id of REVIEW_QUESTION_IDS) answers[id] = answer(FAVORABLE[id] === "yes" ? 1 : 0);
+  const parsed = JSON.parse(JSON.stringify(review(answers)));
+  assert.equal(decide(ok, parsed, 1).verdict, "permit");
+  for (const id of REVIEW_QUESTION_IDS) answers[id] = answer(0.5);
+  const result = decide(ok, review(answers), 0.5);
+  assert.equal(result.verdict, "proposal_only");
+  assert.match(result.reason, /unrelated_changes/);
+  assert.match(result.reason, /needs_clarification/);
+  assert.doesNotMatch(result.reason, /addresses_task|evidence_supports/);
+});
