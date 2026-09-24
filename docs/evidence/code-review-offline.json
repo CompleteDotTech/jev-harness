@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "kind": "offline_implementation_verification",
+  "date": "2026-09-22",
+  "baseCommit": "102fb1765e6608797b27152fec669fe3b13e7ca0",
+  "environment": {
+    "node": "22.16.0",
+    "typescript": "5.8.3",
+    "pinnedToolchain": false
+  },
+  "typecheck": {
+    "passed": true,
+    "typescriptFiles": 23,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "tests": {
+    "command": "node --test /mnt/data/jev-harness-check/tests/*.test.js",
+    "tests": 72,
+    "pass": 72,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "originalGateTests": 9,
+    "newSidecarTests": 63,
+    "durationMs": 793.84891,
+    "tapSha256": "5ab650cd1cb05becf2c27217303909d69ef17bde4e7d7ab84708a6f8d0ca2afb"
+  },
+  "demo": {
+    "source": "mock",
+    "replayMatches": true,
+    "supportedFindings": 1,
+    "coverageEntries": 8
+  },
+  "secrets": {
+    "dependencyFreeScanner": "passed_on_explicit_changed_files",
+    "fullHistoryGitleaks": "not_run"
+  },
+  "limitations": [
+    "Pinned pnpm@10.34.5 download failed with EAI_AGAIN; pinned checks were not run.",
+    "No live Jev requests, accuracy measurements, or threshold calibration.",
+    "No fixture code was executed.",
+    "GitHub CI and commit signature must be verified separately."
+  ],
+  "unchangedBaselineBlobShas": {
+    "src/contract/types.ts": "0c515d80a3aef9c004e9acbbfe7cb632b4fda1fa",
+    "src/contract/decide.ts": "b52bed734e749665b5b24a79d444da84dc27994d",
+    "src/contract/index.ts": "d1e2c66a35331dbe3afaf0049d4d2dfd7efd3e62",
+    "src/index.ts": "52ef7a81032edaeea9a74df1c113e2b52f7c3def",
+    "tests/decide.test.ts": "767eea45d587b8c61fcc34c3e4b09df7e3a4dd0e",
+    "scripts/check-secrets.mjs": "2fb098eac3c5b36de5779b251b39684c831cc806"
+  },
+  "checkedTypeScriptBlobShas": {
+    "examples/code-review-shadow.ts": "2afdf30eefbfafe108f2ef835a13cf920db071e2",
+    "fixtures/code-review/synthetic.ts": "14a900f16c804be82bb69a351f21878a83d14f44",
+    "src/code-review/aggregate.ts": "88e841ab92d6ba5051590c51e3464d106de2b461",
+    "src/code-review/data.ts": "3e360f1332fabb5e9433c44fe46831362d4c5e36",
+    "src/code-review/evaluation.ts": "639a5f247e070c803a6c0b1b915504e541e60ea3",
+    "src/code-review/index.ts": "d7d75f242aba1883a7b38db411d4e07427a03135",
+    "src/code-review/parse.ts": "937e5aec0361ef30e6adcedb2e2b4d8e077a8164",
+    "src/code-review/plan.ts": "e7f2c6ffc099779402feeebc00e7b9556b7055a8",
+    "src/code-review/questions.ts": "b71c1733e4031b8475e7ed0772a8cdd2f3f0824d",
+    "src/code-review/replay.ts": "e110cbfe705a83e0315cd254d02c8c018460d3ca",
+    "src/code-review/types.ts": "8ac5e210022d355e196897a9ff3fc8e42c8bb077",
+    "src/code-review/validate.ts": "0ed89f67fb3a7d848a80cda34f494c2631517c81",
+    "src/code-review/witness.ts": "6861b6bf3dc9ed7832d7e87556a3ec6af4e2cc7a",
+    "src/host/code-review.ts": "1c2269e9fc592bd6bd0e4cd1de169a64f9821a25",
+    "tests/code-review-audit.test.ts": "471beeea12c84af0c6274e09b573505857e5dbac",
+    "tests/code-review-host.test.ts": "1f3680c870152bf3a01226532d5c129553110e2a",
+    "tests/code-review-plan.test.ts": "c810419da974c2d0a57033f706769a4e1d1ac52c",
+    "tests/code-review-response.test.ts": "5b6ba4c25f319f905db446a2622f1749798263fc"
+  }
+}
